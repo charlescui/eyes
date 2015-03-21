@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Eyes::VERSION
   spec.authors       = ["cuizheng"]
   spec.email         = ["zheng.cuizh@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.description   = %q{video streaming and storage }
+  spec.summary       = %q{video streaming and storage }
   spec.homepage      = ""
   spec.license       = "MIT"
 
@@ -20,4 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
+
+  spec.add_runtime_dependency 'rest-client', '>= 1.6.7'
+  spec.add_runtime_dependency 'eventmachine'
 end
