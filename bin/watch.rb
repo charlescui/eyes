@@ -53,7 +53,9 @@ module Handler
 
     def upload(ts)
         File.open(file_path(ts), 'r'){|f|
-            oss.put oss_path(ts), f
+            path = oss_path(ts)
+            oss.put path, f
+            puts "put file to oss : #{path}"
         }
     end
 
