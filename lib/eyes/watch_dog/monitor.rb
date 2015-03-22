@@ -56,12 +56,19 @@ module Eyes
                 @watch_signature[pid.to_i] = sig
             end
 
+            # 监控进程
+            # 如果进程死掉，重启子进程
             def add_new_monit(pid)
-                if sig = @watch_signature[pid.to_i]
-                    EventMachine::unwatch_pid(sig)
+                begin
+                    if sig = @watch_signature[pid.to_i]
+                        EventMachine::unwatch_pid(sig)
+                    end
+                    sig = EventMachine::watch_process(pid, Handler, @pids[pid.to_i])
+                    register_signature(pid, sig)
+                rescue EventMachine::Unsupported => e
+                    # EventMachine's process monitoring API. On Mac OS X and *BSD this method is implemented using kqueue.
+                    # Ubuntu暂不支持
                 end
-                sig = EventMachine::watch_process(pid, Handler, @pids[pid.to_i])
-                register_signature(pid, sig)
             end
         end
     end
