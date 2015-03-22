@@ -10,10 +10,10 @@ last_ts = Dir[File.join(File.dirname($m3u8), '*.ts')].map{|x|
             end
         }.compact.max
 
+$DEBUG = true
 
 # for efficient file watching, use kqueue on Mac OS X
 EventMachine.kqueue = true if EventMachine.kqueue?
-
 
 @monit = Eyes::WatchDog::Monitor.new
 

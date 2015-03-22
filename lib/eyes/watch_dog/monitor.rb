@@ -11,7 +11,14 @@ module Eyes
             def monit(&blk)
                 raise NoProcessHandlerExecption.new, "No handler set for #{pid}" if !block_given?
                 # 启动一个进程来执行任务
-                pid = Kernel.fork(&blk)
+                pid = Kernel.fork{
+                    # 将子进程的输出到引导日志中
+                    $stdout = File.open("watch_dog.out.#{$$}.log", 'w+')
+                    $stdout.sync = true
+                    $stderr = File.open("watch_dog.err.#{$$}.log", 'w+')
+                    $stderr.sync = true
+                    blk.call
+                }
                 # 当进程有故障退出发生时
                 # 重新进入监控
                 monit_blk = proc{
