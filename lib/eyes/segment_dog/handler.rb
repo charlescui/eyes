@@ -63,7 +63,9 @@ module Eyes
                     oss.put opath, f
                     # 回调事件
                     # 用于外界对上传文件完成后的处理
-                    @callback and @callback.call(oss_full_path(path))
+                    @callback and @callback.call(oss_full_path(opath))
+                rescue RestClient::RequestTimeou => e
+                    Eyes::Utils.log "upload file timeout : #{path}"
                 rescue => e
                     Eyes::Utils.log "upload file failed : #{path}"
                     raise e

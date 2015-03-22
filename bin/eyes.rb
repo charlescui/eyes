@@ -30,14 +30,14 @@ DOC
 
 callback = proc{|path|
     uri = path
-    m3u8 = ERB.new(m3u8_tmpl).run
+    m3u8 = ERB.new(m3u8_tmpl)
     File.open("living.m3u8", 'w+'){|f|
-        f << m3u8
+        f << m3u8.result(binding)
     }
 }
 
 EventMachine.run {
-    @monit.monit{
+#    @monit.monit{
         @eye = Eyes::SegmentDog::Monitor.new(
             :m3u8 => ARGV[0],
             :fnreg => fnreg,
@@ -45,5 +45,5 @@ EventMachine.run {
             :callback => callback
         )
         @eye.monit
-    }
+#    }
 }

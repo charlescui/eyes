@@ -6,10 +6,10 @@ module Eyes
             end
 
             def monit
-                Signal.trap('QUIT'){EM.stop;puts "Stop monit #{@m3u8}."}
-                Signal.trap('INT'){EM.stop;puts "Stop monit #{@m3u8}."}
+                Signal.trap('QUIT'){EM.stop;puts "Stop monit #{@opts[:m3u8]}."}
+                Signal.trap('INT'){EM.stop;puts "Stop monit #{@opts[:m3u8]}."}
                 
-                EventMachine.watch_file(@m3u8, Handler, @opts)
+                EventMachine.watch_file(@opts[:m3u8], Handler, @opts)
             end
         end
     end
