@@ -12,7 +12,7 @@ module Aliyun
       @aliyun_access_id  = options[:aliyun_access_id]
       @aliyun_access_key = options[:aliyun_access_key]
       @aliyun_bucket     = options[:aliyun_bucket]
-      @aliyun_area       = options[:aliyun_area].try(:to_s).try(:downcase) || 'cn-hangzhou'
+      @aliyun_area       = (options[:aliyun_area] and options[:aliyun_area].to_s.downcase) || 'cn-hangzhou'
       @aliyun_upload_host = options[:aliyun_upload_host]
 
       # Host for upload
@@ -66,7 +66,12 @@ module Aliyun
         # "Expect"         => "100-Continue"
       }.merge(oss_headers)
 
-      RestClient.put(url, file, headers)
+      begin
+        RestClient.put(url, file, headers)
+      rescue Exception => e
+        puts e
+        raise e
+      end
       return path_to_url(path, :get => true)
     end
 
@@ -139,7 +144,7 @@ true/false
     end
 
     def format_path(path)
-      return "" if path.blank?
+      return "" if !path
       path.gsub!(/^\//,"")
 
       path
