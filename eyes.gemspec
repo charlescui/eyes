@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
 
   spec.add_runtime_dependency 'rest-client', '>= 1.6.7'
   spec.add_runtime_dependency 'eventmachine'
+  spec.add_runtime_dependency 'm3u8'
 end
