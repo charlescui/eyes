@@ -17,27 +17,40 @@ module Eyes
                 segments = []
 
                 meta{|segment_item|
-                    name = File.basename(segment_item)
-                    if(@fnreg =~ name)
-                        ts = $1.to_i
-                        segments << ts
-                        path = file_path(ts)
-                        upload(path, segment_item)
+                    shift_to_sized
+                    if sized_segments_array.include?(segment_item.segment)
+                        # 已经有过，则什么也不处理
+                        Eyes::Utils.log "ERROR get same segment - #{segment_item.segment}"
                     else
-                        nil
+                        # 否则，保存到列表中，做下次对比用
+                        sized_segments_array << segment_item.segment
+                        name = File.basename(segment_item.segment)
+                        if(@fnreg =~ name)
+                            ts = $1.to_i
+                            segments << ts
+                            path = file_path(ts)
+                            upload(path, segment_item)
+                        else
+                            nil
+                        end
                     end
                 }
 
-                # 找到当前m3u8中最小的时间戳
-                # 所有小于该时间戳的文件，都可以删除
-                latest = segments.min
+                if segments.size > 0
+                    # 找到当前m3u8中最小的时间戳
+                    # 所有小于该时间戳的文件，都可以删除
+                    latest = segments.min
 
-                Dir[File.join(File.dirname(@m3u8), '*.ts')].map{|x|
-                    name = File.basename(x)
-                    if(@fnreg =~ name) and ($1.to_i < latest)
-                        clean(x)
-                    end
-                }
+                    Dir[File.join(File.dirname(@m3u8), '*.ts')].map{|x|
+                        name = File.basename(x)
+                        if(@fnreg =~ name) and ($1.to_i < latest)
+                            clean(x)
+                        end
+                    }
+                else
+                    Eyes::Utils.log "read segments empty"
+                    Eyes::Utils.log `cat #{@m3u8}`
+                end
             end
 
             def file_moved
@@ -57,7 +70,12 @@ module Eyes
             def meta
                 File.open(@m3u8){|file|
                     playlist = M3u8::Playlist.read file
-                    playlist.each { |e| yield e}
+                    if playlist.items and (playlist.items.size > 0)
+                        playlist.items.each { |e| yield e}
+                    else
+                        Eyes::Utils.log "No items found in m3u8 file - #{@m3u8}"
+                        Eyes::Utils.log "content : #{`cat #{@m3u8}`}"
+                    end
                 }
             end
 
@@ -78,13 +96,15 @@ module Eyes
                 opath = oss_path(path)
                 Eyes::Utils.log "put file to oss : #{opath}"
                 begin
-                    oss.put opath, f
+                    oss.put opath, f, :content_type => "video/MP2T"
                     # 回调事件
                     # 用于外界对上传文件完成后的处理
                     @callback and @callback.call(path, oss_full_path(opath), segment_item)
                     # 变更文件内容
                     notify_file(path, oss_full_path(opath))
                 rescue RestClient::RequestTimeout => e
+                    Eyes::Utils.log "upload file timeout : #{path}"
+                rescue Errno::ETIMEDOUT => e
                     Eyes::Utils.log "upload file timeout : #{path}"
                 rescue => e
                     Eyes::Utils.log "upload file failed : #{path}"
@@ -117,6 +137,20 @@ module Eyes
                     :aliyun_bucket => ENV["aliyun_bucket"],
                     :aliyun_area => ENV["aliyun_area"]
                 }
+            end
+
+            # 发现会有重复的segments触发文件系统
+            # 但新文件却还没有生成
+            # 所以需要近期有部分segments保存下来做对比
+            def sized_segments_array
+                @_sized_segments_array ||= []
+            end
+
+            # 只保留100个最近的segment
+            def shift_to_sized
+                while sized_segments_array.size > 100
+                    sized_segments_array.shift
+                end
             end
         end
     end

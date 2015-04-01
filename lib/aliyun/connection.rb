@@ -68,6 +68,8 @@ module Aliyun
 
       begin
         RestClient.put(url, file, headers)
+      rescue SocketError => e
+        # nothing
       rescue Exception => e
         puts e
         raise e
