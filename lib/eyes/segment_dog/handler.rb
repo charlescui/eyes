@@ -102,10 +102,12 @@ module Eyes
                     @callback and @callback.call(path, oss_full_path(opath), segment_item)
                     # 变更文件内容
                     notify_file(path, oss_full_path(opath))
+                rescue RestClient::BadRequest => e
+                    Eyes::Utils.log "upload file bad BadRequest : #{path}"
                 rescue RestClient::RequestTimeout => e
-                    Eyes::Utils.log "upload file timeout : #{path}"
+                    Eyes::Utils.log "upload file RequestTimeout : #{path}"
                 rescue Errno::ETIMEDOUT => e
-                    Eyes::Utils.log "upload file timeout : #{path}"
+                    Eyes::Utils.log "upload file ETIMEDOUT : #{path}"
                 rescue => e
                     Eyes::Utils.log "upload file failed : #{path}"
                     raise e
