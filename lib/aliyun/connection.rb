@@ -69,10 +69,11 @@ module Aliyun
       begin
         RestClient.put(url, file, headers)
       rescue SocketError => e
+	# nothing
+      rescue Errno::EHOSTUNREACH => e
         # nothing
       rescue Exception => e
         puts e
-        raise e
       end
       return path_to_url(path, :get => true)
     end
